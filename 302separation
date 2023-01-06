@@ -1,0 +1,220 @@
+#!/usr/bin/python
+# coding: utf-8
+
+
+import os, sys, operator
+
+nameTab = []
+classTab = []
+unique = None
+pathOperand = False
+
+class People:
+    def __init__(self, name):
+        self.name = name;
+        self.linkName = []
+
+    def getName(self):
+        return (self.name)
+
+    def linkRelationName(self):
+        return(self.linkName)
+
+    def addRelation(self, name):
+        if not (name in self.linkName):
+            self.linkName.append(name)
+        
+    def getRelation(self):
+        for linker in self.linkName:
+            return 0
+
+def Usage():
+    print("USAGE:\n\t./302separation file [n | p1 p2]\t")
+    print("DESCRIPTION\n\tfile\tfile that contains the list of Facebook connections")
+    print("\tn\tmaximum length of the paths")
+    print("\tpi\tname of someone in the file")
+            
+def writingexange(name):
+    global nameTab
+    if (name in nameTab):
+        return (False)
+    else:
+        nameTab.append(name)
+        return (True)
+
+def checkPeopleWrist(firstname, second, linker):
+    global nameTab
+    if ((firstname in  nameTab) and (second in nameTab)):
+        if (firstname == second):
+            print("degree of separation between %s and %s: 0" % (firstname, second))
+        else:
+            DoMatrixCalc(linker, firstname, second)
+    else:
+        print("degree of separation between %s and %s: -1" % (firstname, second))
+        exit(0)
+
+def newClass(name):
+    global classTab
+    linker_class = People(name)
+    classTab.append(linker_class)
+    
+def printClass():
+    global classTab
+    for elem in classTab:
+        print("People: %s" % elem.getName())
+        elem.getRelation()
+
+def addingRelationtolist(people, friends):
+    global classTab
+    for elem in classTab:
+        if (elem.getName() == people):
+            elem.addRelation(friends)
+
+def selectName(linker):
+    global nameTab
+    count = 1
+    nameTab.sort()
+    for elem in nameTab:
+        print ("%s" % elem)
+    print("")
+
+def DoMatrixCalc(linker, start, end):
+    global unique
+    count = 1
+    graph = {}
+    for i in range(len(linker)):
+        if (count == 1):
+            if linker[i] in graph:
+                graph[linker[i]].append(linker[i+1])
+            else:
+                graph[linker[i]] = [linker[i+1]]
+        if (count == 2):
+            if linker[i] in graph:
+                graph[linker[i]].append(linker[i-1])
+            else:
+                graph[linker[i]] = [linker[i-1]]
+            count = 0
+        count = count + 1
+    unique = start
+    findPath(graph, start, end)
+    
+def findPath(graph, begin, end, path=[]):
+    global i
+    global unique
+    path = path + [begin]
+    if (begin == end):
+        return path
+    for node in graph[begin]:
+        if (node not in path):
+            searchOther = findPath(graph, node, end, path)
+            if (searchOther):
+                if (pathOperand == True):
+                    print("Degree of separation between %s and %s: %d" % (unique, end, (len(searchOther)-1)))
+                    print(searchOther)
+                else:
+                    print("Degree of separation between %s and %s: %d" % (unique, end, (len(searchOther)-1)))
+                exit(0)
+    return None
+        
+def matriceMouvement(linker):
+    global nameTab
+    a = 0
+    b = 0
+    count = 1
+    nameTab.sort()
+    lenght_map = []
+    ct = 1
+    line = 0
+    for i in range(0, len(linker)):
+        if (ct == 1):
+            line = line + 1
+        if (ct == 2):
+            ct = 0
+        ct = ct + 1
+    for i in range(len(nameTab)):
+        lenght_map.append([0] * line)
+    for elem in nameTab:
+        for i in range(0, len(linker)):
+            if (count == 1):
+                if ((linker[i] == elem) or (linker[i+1] == elem)):
+                    lenght_map[b][a] = 1
+                a = a + 1
+            if (count == 2):
+                count = 0
+            count = count + 1
+        a = 0
+        b = b + 1
+
+    for i in range(len(nameTab)):
+        print(lenght_map[i])         
+
+def adjacencyMatrix():
+    global nameTab
+    global classTab
+    global validity
+    nameTab.sort();
+    classTab.sort(key=operator.attrgetter("name"))
+    for c in classTab:
+        relation = c.linkRelationName()
+        counter = 0
+        for n in nameTab:
+            counter += 1
+            validity = False
+            for recursivity in relation:
+                if (n == recursivity):
+                    validity = True
+            if validity:
+                sys.stdout.write('1')
+            else:
+                sys.stdout.write('0')
+            if (counter < len(nameTab)):
+                sys.stdout.write(' ')
+        sys.stdout.write('\n')
+        
+def analyse():
+    global pathOperand
+    if len(sys.argv) >= 3:
+        if not os.path.isfile(sys.argv[1]):
+            exit(84)
+        file = open(sys.argv[1], "r")
+        watcher = file.read()
+        file.close()
+        rep = watcher.replace('\n', " is friend with " )
+        linker = rep.split(" is friend with ")
+        if (len(sys.argv) == 3):
+            if (sys.argv[2] == "-n"):
+                makePeople(linker)
+                matriceMouvement(linker)
+            else:
+                makePeople(linker)
+                selectName(linker)
+                adjacencyMatrix()
+        elif (len(sys.argv) == 4):
+            makePeople(linker)
+            checkPeopleWrist(sys.argv[2], sys.argv[3], linker)
+        elif (len(sys.argv) == 5):
+            if (sys.argv[4] == "-pi"):
+                makePeople(linker)
+                pathOperand = True
+                checkPeopleWrist(sys.argv[2], sys.argv[3], linker)
+            else:
+                Usage()
+
+def makePeople(linker):
+    count = 0
+    i = 1
+    for elem in linker:
+        if (i == 3):
+            i = 1
+        if (writingexange(elem)):
+            newClass(elem)
+        if (i == 1):
+            addingRelationtolist(linker[count], linker[count + 1])
+        else:
+            addingRelationtolist(linker[count], linker[count - 1])
+        i += 1
+        count += 1
+
+analyse()
+
+exit(0)
